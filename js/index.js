@@ -9,6 +9,7 @@ const result = document.querySelector("#items");
 // Récupérer les produits de l'API
 async function getProducts() {
   // const response = await fetch("http://localhost:3000/api/products");
+  // test
   const response = await fetch(
     "https://p5-kanap-ocr.herokuapp.com/api/products"
   );
