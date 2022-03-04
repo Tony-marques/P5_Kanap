@@ -10,7 +10,8 @@ const result = document.querySelector(".item");
 // Récupérer un produit de l'API avec l'id
 async function getOneProduct() {
   const response = await fetch(
-    `http://localhost:3000/api/products/${productId}`
+    // `http://localhost:3000/api/products/${productId}`
+    `https://p5-kanap-ocr.herokuapp.com/api/products${productId}`
   );
   const body = await response.json();
   return body;
@@ -78,7 +79,7 @@ async function createLS() {
     color: select.value,
     price: product.price,
     name: product.name,
-    imageUrl: product.imageUrl
+    imageUrl: product.imageUrl,
   };
   let kanap = getProductLS();
   let kanapFind = kanap.find((item) => {

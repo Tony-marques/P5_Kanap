@@ -264,7 +264,8 @@ function confirmCart() {
     headers: { "Content-Type": "application/json" },
   };
 
-  fetch("http://localhost:3000/api/products/order", {
+  // http://localhost:3000/api/products/order
+  fetch("https://p5-kanap-ocr.herokuapp.com/api/products/order", {
     method: "POST",
     body: JSON.stringify(order),
     headers: { "Content-Type": "application/json" },
