@@ -11,7 +11,7 @@ const result = document.querySelector(".item");
 async function getOneProduct() {
   const response = await fetch(
     // `http://localhost:3000/api/products/${productId}`
-    `https://p5-kanap-ocr.herokuapp.com/api/products${productId}`
+    `https://p5-kanap-ocr.herokuapp.com/api/products/${productId}`
   );
   const body = await response.json();
   return body;
