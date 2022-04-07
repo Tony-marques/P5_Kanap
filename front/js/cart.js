@@ -2,15 +2,19 @@ let color = "";
 let id = "";
 let quantity = "";
 
-// console.log(emailInput);
+async function getProductsFetch() {
+  const response = await fetch(
+    "https://p5-kanap-ocr.herokuapp.com/api/products"
+  );
+  const body = await response.json();
+  return body;
+}
 
 (async () => {
   const productLS = await getProductLS();
   displayProduct(productLS);
-  totalPrice(productLS);
   totalQuantity(productLS);
   deleteItem(productLS);
-  changeQuantity(productLS);
 })();
 
 function getProductLS() {
@@ -19,46 +23,55 @@ function getProductLS() {
 
 async function displayProduct(productLS) {
   const cartItem = document.querySelector("#cart__items");
-  const productsDisplay = productLS
-    .map((p) => {
-      return `
-        <article class="cart__item" data-id="${p.id}" data-color="${p.color}">
-          <div class="cart__item__img">
-            <img src="${p.imageUrl}" alt="Photographie d'un canapé">
-          </div>
-          <div class="cart__item__content">
-            <div class="cart__item__content__description">
-              <h2 class="name">${p.name}</h2>
-                <p class="color">${p.color}</p>
-                <p class="price">${p.price} €</p>
-              </div>
-              <div class="cart__item__content__settings">
-                <div class="cart__item__content__settings__quantity">
-                  <p>Qté : </p>
-                  <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${p.quantity}">
-                </div>
-                <div class="cart__item__content__settings__delete">
-                  <p class="deleteItem">Supprimer</p>
-                </div>
-              </div>
+  for (let item of productLS) {
+    fetch(`https://p5-kanap-ocr.herokuapp.com/api/products/${item.id}`)
+      .then((data) => data.json())
+      .then((product) => {
+        const productsDisplay = productLS
+          .map((p) => {
+            return `
+          <article class="cart__item" data-id="${p.id}" data-color="${p.color}">
+            <div class="cart__item__img">
+              <img src="${p.imageUrl}" alt="${product.altTxt}">
             </div>
-          </article>
-      `;
-    })
-    .join("");
-  cartItem.innerHTML = productsDisplay;
+            <div class="cart__item__content">
+              <div class="cart__item__content__description">
+                <h2 class="name">${p.name}</h2>
+                  <p class="color">${p.color}</p>
+                  <p class="price">${product.price} €</p>
+                </div>
+                <div class="cart__item__content__settings">
+                  <div class="cart__item__content__settings__quantity">
+                    <p>Qté : </p>
+                    <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${p.quantity}">
+                  </div>
+                  <div class="cart__item__content__settings__delete">
+                    <p class="deleteItem">Supprimer</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+        `;
+          })
+          .join("");
+        cartItem.innerHTML = productsDisplay;
+        totalPrice(product, productLS);
+        changeQuantity(product, productLS);
+        deleteItem();
+      });
+  }
 }
 
 // Récupérer le prix total de l'ensemble des produits du panier
-function totalPrice(product) {
+function totalPrice(product, productLS) {
+  console.log("product " + product);
   let sum = [];
-  for (let v of product) {
-    sum.push(v.price * v.quantity);
+  for (let v of productLS) {
+    sum.push(product.price * v.quantity);
   }
   const reduce = sum.reduce((acc, value) => {
     return acc + value;
   });
-
   const tPrice = document.querySelector("#totalPrice");
   tPrice.innerHTML = reduce;
 }
@@ -72,7 +85,6 @@ function totalQuantity(product) {
   const reduce = sum.reduce((acc, value) => {
     return acc + value;
   });
-
   const tQuantity = document.querySelector("#totalQuantity");
   tQuantity.innerHTML = reduce;
 }
@@ -80,6 +92,7 @@ function totalQuantity(product) {
 // Supprimer un élément du LS
 function deleteItem() {
   const deleteButtons = document.querySelectorAll(".deleteItem");
+
   deleteButtons.forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       const target = e.target.closest(".cart__item").dataset.id;
@@ -101,7 +114,7 @@ function saveProductLS(product) {
 }
 
 // Change la quantité depuis la page panier
-async function changeQuantity() {
+async function changeQuantity(product, productLS) {
   let kanap = await getProductLS();
   let inputQuantity = document.querySelectorAll(".itemQuantity");
 
@@ -117,7 +130,7 @@ async function changeQuantity() {
       // Actualise la quantité
       totalQuantity(kanap);
       // Actualise le prix total
-      totalPrice(kanap);
+      totalPrice(product, kanap);
     });
   });
   // }
@@ -139,6 +152,7 @@ let regexCity = new RegExp("^([^0-9]*).{3}$");
 
 let orderButton = document.querySelector("#order");
 
+// Affichage des erreurs
 function displayError(input, ErrorMsg, regex, type) {
   ErrorMsg = document.querySelector(`#${ErrorMsg}`);
 
@@ -198,23 +212,13 @@ addressInput.addEventListener("input", (e) => {
 
 check();
 
+// checker les champs du formulaire grâce au regex
 function check() {
   const firstname = document.getElementById("firstName").value;
   const lastname = document.getElementById("lastName").value;
   const address = document.getElementById("address").value;
   const email = document.getElementById("email").value;
   const city = document.getElementById("city").value;
-
-  let regexEmail = new RegExp(
-    "^[a-zA-Z0-9.-_]+@{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$",
-    "g"
-  );
-  let regexFirstName = new RegExp("^([^0-9]*).{3}$");
-  let regexLastName = new RegExp("^([^0-9]*).{3}$");
-  let regexCity = new RegExp("^([^0-9]*).{3}$");
-
-  let orderButton = document.querySelector("#order");
-
   if (
     !(
       regexFirstName.test(firstname) &&
@@ -226,14 +230,13 @@ function check() {
   ) {
     orderButton.setAttribute("disabled", true);
     orderButton.style.opacity = "0.5";
-    console.log("non");
   } else {
     orderButton.removeAttribute("disabled");
     orderButton.style.opacity = "1";
-    console.log("gg");
   }
 }
 
+// Confirmer le panier
 function confirmCart() {
   const productLS = getProductLS();
   // Nouveau tableau uniquement avec les id
@@ -243,29 +246,16 @@ function confirmCart() {
   console.log(newProduct);
   const order = {
     contact: {
-      // firstName: document.getElementById("firstName").value,
-      // lastName: document.getElementById("lastName").value,
-      // address: document.getElementById("address").value,
-      // email: document.getElementById("email").value,
-      // city: document.getElementById("city").value,
-      firstName: "tony",
-      lastName: "marques",
-      address: "2rue montesq",
-      email: "tony.marques@live.fr",
-      city: "gargenville",
+      firstName: document.getElementById("firstName").value,
+      lastName: document.getElementById("lastName").value,
+      address: document.getElementById("address").value,
+      email: document.getElementById("email").value,
+      city: document.getElementById("city").value,
     },
     products: newProduct,
   };
-  // console.log(JSON.stringify(order));
 
-  const options = {
-    method: "POST",
-    body: JSON.stringify(order),
-    headers: { "Content-Type": "application/json" },
-  };
-
-  // http://localhost:3000/api/products/order
-  fetch("https://p5-kanap-ocr.herokuapp.com/api/products/order", {
+  fetch("http://localhost:3000/api/products/order", {
     method: "POST",
     body: JSON.stringify(order),
     headers: { "Content-Type": "application/json" },
@@ -274,9 +264,6 @@ function confirmCart() {
       return res.json();
     })
     .then((data) => {
-      localStorage.setItem("orderId", data.orderId);
-      location.href = `confirmation.html?${data.orderId}`;
+      location.href = `confirmation.html?id=${data.orderId}`;
     });
 }
-
-// confirmCart();

@@ -1,17 +1,14 @@
 (async () => {
   const products = await getProducts();
-  console.log(products);
   displayProducts(products);
 })();
 
 const result = document.querySelector("#items");
 
 // Récupérer les produits de l'API
-//
 async function getProducts() {
-  // const response = await fetch("http://localhost:3000/api/products");
   const response = await fetch(
-    "https://p5-kanap-ocr.herokuapp.com/api/products"
+    "http://localhost:3000/api/products"
   );
   const body = await response.json();
   return body;
@@ -24,7 +21,7 @@ function displayProducts(products) {
       return `
     <a href="./product.html?id=${product._id}">
     <article>
-      <img src="${product.imageUrl}" alt="${product.description}">
+      <img src="${product.imageUrl}" alt="${product.altTxt}">
       <h3 class="${product.name}">${product.name}</h3>
       <p class="${product.description}">${product.description}</p>
     </article>

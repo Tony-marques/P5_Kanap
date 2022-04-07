@@ -10,8 +10,7 @@ const result = document.querySelector(".item");
 // Récupérer un produit de l'API avec l'id
 async function getOneProduct() {
   const response = await fetch(
-    // `http://localhost:3000/api/products/${productId}`
-    `https://p5-kanap-ocr.herokuapp.com/api/products/${productId}`
+    `http://localhost:3000/api/products/${productId}`
   );
   const body = await response.json();
   return body;
@@ -22,7 +21,7 @@ function displayProduct(product) {
   result.innerHTML = `
   <article>
   <div class="item__img">
-    <img src="${product.imageUrl}">
+    <img src="${product.imageUrl}" alt="${product.altTxt}">
   </div>
   <div class="item__content">
 
@@ -69,6 +68,7 @@ function displayProduct(product) {
   containerButton.appendChild(button);
 }
 
+// Création du localStorage
 async function createLS() {
   const inputQuantity = document.querySelector("#quantity");
   const product = await getOneProduct();
@@ -77,7 +77,6 @@ async function createLS() {
     id: product._id,
     quantity: parseInt(inputQuantity.value),
     color: select.value,
-    price: product.price,
     name: product.name,
     imageUrl: product.imageUrl,
   };
